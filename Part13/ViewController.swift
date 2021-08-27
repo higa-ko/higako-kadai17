@@ -39,6 +39,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         guard let item = inputViewController?.item else { return }
 
         items.append(item)
+        
         tableView.reloadData()
     }
 }
