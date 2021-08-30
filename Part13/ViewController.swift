@@ -7,11 +7,21 @@
 
 import UIKit
 
+struct Item {
+    var item: String
+    var check: Bool
+}
+
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
 
     @IBOutlet private weak var tableView: UITableView!
 
-    private var items = ["りんご", "みかん", "バナナ", "パイナップル"]
+    private var items: [Item] = [
+        Item(item: "りんご", check: true),
+        Item(item: "みかん", check: false),
+        Item(item: "バナナ", check: true),
+        Item(item: "パイナップル", check: false)
+    ]
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         items.count
@@ -21,9 +31,9 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
 
         let cell = tableView.dequeueReusableCell(withIdentifier: "CheckCell", for: indexPath)
 
-        cell.textLabel!.text = items[indexPath.row]
+        cell.textLabel!.text = items[indexPath.row].item
 
-        if indexPath.row % 2 == 0 {
+        if items[indexPath.row].check {
             cell.imageView?.tintColor = .white
         } else {
             cell.imageView?.tintColor = .orange
@@ -36,9 +46,17 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
 
     @IBAction private func exitSave(segue: UIStoryboardSegue) {
         let inputViewController = segue.source as? InputViewController
-        guard let item = inputViewController?.item else { return }
+        guard let addItem = inputViewController?.addItem else { return }
 
-        items.append(item)
+        items.append(contentsOf: addItem)
         tableView.reloadData()
+    }
+
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+
+        items[indexPath.row].check = !items[indexPath.row].check
+
+        let indexPaths = [IndexPath(row: indexPath.row, section: 0)]
+        tableView.reloadRows(at: indexPaths, with: .fade)
     }
 }

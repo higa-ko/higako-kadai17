@@ -9,11 +9,11 @@ import UIKit
 
 class InputViewController: UIViewController {
 
-    var item: String?
+    private(set) var addItem: [Item]?
 
     @IBOutlet private weak var inputTextField: UITextField!
 
     @IBAction func changeInputTextField(_ sender: UITextField) {
-        item = String(inputTextField.text!)
+        addItem = [Item(item: inputTextField.text ?? "", check: true)]
     }
 }
