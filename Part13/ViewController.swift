@@ -8,20 +8,48 @@
 import UIKit
 
 struct Item {
-    var item: String
-    var check: Bool
+    var name: String
+    var isChecked: Bool
+}
+
+enum Mode {
+    case add, edit
 }
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
 
     @IBOutlet private weak var tableView: UITableView!
 
+    private let addSegue = "addSegue"
+    private let editSegue = "editSegue"
+
+    var mode = Mode.add
+
     private var items: [Item] = [
-        Item(item: "りんご", check: true),
-        Item(item: "みかん", check: false),
-        Item(item: "バナナ", check: true),
-        Item(item: "パイナップル", check: false)
+        Item(name: "りんご", isChecked: true),
+        Item(name: "みかん", isChecked: false),
+        Item(name: "バナナ", isChecked: true),
+        Item(name: "パイナップル", isChecked: false)
     ]
+
+    private var itemName: String?
+    private var number: Int?
+
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+
+        guard let moment = segue.destination as? UINavigationController else { return }
+        guard let inputVC = moment.topViewController as? InputViewController else { return }
+
+        switch segue.identifier ?? "" {
+        case addSegue:
+            mode = .add
+        case editSegue:
+            mode = .edit
+            inputVC.itemName = itemName
+        default:
+            print("存在しないidentifierが指定されている")
+        }
+    }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         items.count
@@ -31,9 +59,9 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
 
         let cell = tableView.dequeueReusableCell(withIdentifier: "CheckCell", for: indexPath)
 
-        cell.textLabel!.text = items[indexPath.row].item
+        cell.textLabel!.text = items[indexPath.row].name
 
-        if items[indexPath.row].check {
+        if items[indexPath.row].isChecked {
             cell.imageView?.tintColor = .white
         } else {
             cell.imageView?.tintColor = .orange
@@ -41,22 +69,35 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         return cell
     }
 
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+
+        items[indexPath.row].isChecked.toggle()
+
+        let indexPaths = [indexPath]
+        tableView.reloadRows(at: indexPaths, with: .fade)
+    }
+
+    func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath) {
+        number = indexPath.row
+        itemName = items[number!].name
+        self.performSegue(withIdentifier: editSegue, sender: self)
+    }
+
     @IBAction private func exitCancel(segue: UIStoryboardSegue) {
     }
 
     @IBAction private func exitSave(segue: UIStoryboardSegue) {
-        let inputViewController = segue.source as? InputViewController
-        guard let addItem = inputViewController?.addItem else { return }
+        guard let inputViewController = segue.source as? InputViewController else { return }
+        guard let data = inputViewController.itemName else { return }
+        guard data != "" else { return }
 
-        items.append(contentsOf: addItem)
+        switch mode {
+        case .add:
+            items.append(Item(name: data, isChecked: true))
+        case .edit:
+            items[number!].name = data
+        }
+
         tableView.reloadData()
-    }
-
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-
-        items[indexPath.row].check = !items[indexPath.row].check
-
-        let indexPaths = [IndexPath(row: indexPath.row, section: 0)]
-        tableView.reloadRows(at: indexPaths, with: .fade)
     }
 }
