@@ -12,18 +12,12 @@ struct Item {
     var isChecked: Bool
 }
 
-enum Mode {
-    case add, edit
-}
-
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
 
     @IBOutlet private weak var tableView: UITableView!
 
     private let addSegue = "addSegue"
     private let editSegue = "editSegue"
-
-    var mode = Mode.add
 
     private var items: [Item] = [
         Item(name: "りんご", isChecked: true),
@@ -33,7 +27,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     ]
 
     private var itemName: String?
-    private var number: Int?
+    private var rowForEditing: Int?
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
 
@@ -42,10 +36,9 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
 
         switch segue.identifier ?? "" {
         case addSegue:
-            mode = .add
+            inputVC.mode = .add
         case editSegue:
-            mode = .edit
-            inputVC.itemName = itemName
+            inputVC.mode = .edit(itemName ?? "")
         default:
             print("存在しないidentifierが指定されている")
         }
@@ -78,9 +71,19 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     }
 
     func tableView(_ tableView: UITableView, accessoryButtonTappedForRowWith indexPath: IndexPath) {
-        number = indexPath.row
-        itemName = items[number!].name
+        rowForEditing = indexPath.row
+        itemName = items[rowForEditing!].name
         self.performSegue(withIdentifier: editSegue, sender: self)
+    }
+
+    // swiftlint:disable line_length
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+    // swiftlint:enable line_length
+
+        if editingStyle == .delete {
+            items.remove(at: indexPath.row)
+            tableView.deleteRows(at: [indexPath], with: .automatic)
+        }
     }
 
     @IBAction private func exitCancel(segue: UIStoryboardSegue) {
@@ -88,14 +91,17 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
 
     @IBAction private func exitSave(segue: UIStoryboardSegue) {
         guard let inputViewController = segue.source as? InputViewController else { return }
-        guard let data = inputViewController.itemName else { return }
-        guard data != "" else { return }
+        guard let itemName = inputViewController.editedItemName else { return }
+        guard itemName != "" else { return }
+
+        guard let mode = inputViewController.mode else { return }
 
         switch mode {
         case .add:
-            items.append(Item(name: data, isChecked: true))
+            items.append(Item(name: itemName, isChecked: true))
         case .edit:
-            items[number!].name = data
+            guard let rowForEditing = rowForEditing else { return }
+            items[rowForEditing].name = itemName
         }
 
         tableView.reloadData()
