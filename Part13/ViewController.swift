@@ -76,9 +76,9 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         self.performSegue(withIdentifier: editSegue, sender: self)
     }
 
-    // swiftlint:disable line_length
-    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-    // swiftlint:enable line_length
+    func tableView(_ tableView: UITableView,
+                   commit editingStyle: UITableViewCell.EditingStyle,
+                   forRowAt indexPath: IndexPath) {
 
         if editingStyle == .delete {
             items.remove(at: indexPath.row)
